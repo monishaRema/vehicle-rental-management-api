@@ -15,8 +15,13 @@ async function getAllVehicles() {
 }
 
 
-async function getSingleVehicleRepo(){
-  const vehicle = await prisma.vehicle.findUnique()
+async function getSingleVehicleRepo(id:string){
+  const vehicle = await prisma.vehicle.findFirst({
+    where:{
+      id,
+      isDeleted:false,
+    }
+  })
   return vehicle;
 }
 

@@ -6,8 +6,8 @@ async function getAllVehicles(){
     return vehicles;
 }
 
-async function getSingleVehicleService(){
-    const vehicle = await vehiclesRepository.getSingleVehicleRepo();
+async function getSingleVehicleService(id:string){
+    const vehicle = await vehiclesRepository.getSingleVehicleRepo(id);
     return vehicle;
 }
     
