@@ -1,6 +1,9 @@
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
+import { notFound } from "./middleware/notFound.js";
+import { globalErrorHandler } from "./middleware/globalErrorHandler.js";
+import sendResponse from "./utils/sendResponse.js";
 
 const app = express();
 
@@ -10,10 +13,10 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/health", (_req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Server is running",
-  });
+  sendResponse({ res, statusCode: 200, message: "Server is running" });
 });
+
+app.use(notFound);
+app.use(globalErrorHandler);
 
 export default app;
