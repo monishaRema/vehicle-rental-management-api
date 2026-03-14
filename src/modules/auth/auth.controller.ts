@@ -17,7 +17,18 @@ async function registerUser(req: Request, res: Response) {
 }
 
 async function loginUser(req: Request, res: Response) {
-  
+  const credentials = req.body;
+
+  const userLogin = await authService.loginUserService(credentials)
+
+  sendResponse({
+    res,
+    statusCode:200,
+    message:"Login successful",
+    data:userLogin
+  })
+
+
 }
 
 export const authController = {
