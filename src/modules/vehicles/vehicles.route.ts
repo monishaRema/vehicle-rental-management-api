@@ -3,19 +3,14 @@ import { vehiclesController } from "./vehicles.controller.js";
 
 const vehicleRouter = Router();
 
-// Default endpoint => /api/v1/vehicles  => /
+// Default endpoint => /api/v1/vehicles
 
 
-// GET  => /api/v1/vehicles
 vehicleRouter.get('/', vehiclesController.getAllVehicles);
-
-// GET  => /api/v1/vehicles/:id
 vehicleRouter.get('/:id',vehiclesController.getSingleVehicle);
-
-// POST  => /api/v1/vehicles
-
-// DELETE  => /api/v1/vehicles
-
+vehicleRouter.post('/', vehiclesController.createVehicle);
+vehicleRouter.patch('/:id',vehiclesController.updateVehicle);
+vehicleRouter.delete('/:id',vehiclesController.deleteVehicle);
 
 
 export default vehicleRouter;

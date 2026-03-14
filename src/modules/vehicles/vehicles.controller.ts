@@ -38,7 +38,51 @@ async function getSingleVehicle(req:Request, res:Response){
     })
 }
 
+
+async function createVehicle(req:Request, res:Response){
+   const vehicleData = req.body;
+
+  const vehicle = await vehiclesService.createVehicleService(vehicleData);
+
+  sendResponse({
+    res,
+    statusCode: 201,
+    message: "Vehicle created successfully",
+    data: vehicle,
+  });
+}
+
+async function updateVehicle(req: Request, res: Response) {
+  const { id } = req.params;
+  const updateData = req.body;
+
+  const updatedVehicle = await vehiclesService.updateVehicleService(id as string, updateData);
+
+  sendResponse({
+    res,
+    statusCode: 200,
+    message: "Vehicle updated successfully",
+    data: updatedVehicle,
+  });
+}
+
+async function deleteVehicle(req: Request, res: Response) {
+  const { id } = req.params;
+
+  const vehicle = await vehiclesService.deleteVehicleService(id as string);
+
+  sendResponse({
+    res,
+    statusCode: 200,
+    message: "Vehicle deleted successfully",
+    data: vehicle,
+  });
+}
+
 export const vehiclesController = {
 getAllVehicles,
-getSingleVehicle
+getSingleVehicle,
+createVehicle,
+updateVehicle,
+deleteVehicle,
 }

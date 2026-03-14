@@ -5,6 +5,8 @@ import { notFound } from "./middleware/notFound.js";
 import { globalErrorHandler } from "./middleware/globalErrorHandler.js";
 import sendResponse from "./utils/sendResponse.js";
 import vehicleRouter from "./modules/vehicles/vehicles.route.js";
+import { usersRouter } from "./modules/users/users.route.js";
+import authRouter from "./modules/auth/auth.route.js";
 
 const app = express();
 
@@ -20,6 +22,10 @@ app.get("/health", (_req, res) => {
 // Vehicle Routes => /api/v1/vehicles
 app.use("/api/v1/vehicles", vehicleRouter)
 
+app.use("/api/v1/auth",authRouter)
+
+// Users Routes => /api/v1/users
+app.use("/api/v1/users", usersRouter)
 
 app.use(notFound);
 app.use(globalErrorHandler);
