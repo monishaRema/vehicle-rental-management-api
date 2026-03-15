@@ -1,5 +1,5 @@
 import { prisma } from "../../lib/prisma.js"
-import { RegisterPayload } from "./auth.types.js"
+
 
 async function getUserByEmail(email:string) {
 
