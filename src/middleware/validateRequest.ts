@@ -1,5 +1,5 @@
-import type { NextFunction, Request, RequestHandler, Response } from "express";
-import { success, ZodType as ZodSchema } from "zod";
+import type { NextFunction, Request, Response } from "express";
+import { ZodType as ZodSchema } from "zod";
 import { AppError } from "../errors/AppError.js";
 
 type RequestPart = "body" | "params" | "query";
@@ -9,7 +9,7 @@ export const validateRequest = (
   schema: ZodSchema,
   requestPart: RequestPart,
 ) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     const result = schema.safeParse(req[requestPart]);
 
     if (!result.success) {
