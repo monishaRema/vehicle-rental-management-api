@@ -1,23 +1,19 @@
-import { prisma } from "../../lib/prisma.js"
+import { prisma } from "../../lib/prisma.js";
 
-
-async function getUserByEmail(email:string) {
-
-    return await prisma.user.findUnique({
-        where:{
-            email
-        }
-    })
-    
+async function getUserByEmail(email: string) {
+  return await prisma.user.findUnique({
+    where: {
+      email,
+    },
+  });
 }
 
-
-async function registerUserRepo(data:{
-    name:string;
-    email:string;
-    passwordHash:string;
-}){
-    return await prisma.user.create({
+async function registerUserRepo(data: {
+  name: string;
+  email: string;
+  passwordHash: string;
+}) {
+  return await prisma.user.create({
     data: {
       name: data.name,
       email: data.email,
@@ -34,10 +30,28 @@ async function registerUserRepo(data:{
       createdAt: true,
       updatedAt: true,
     },
-  })
+  });
+}
+
+async function getMeRepo(id: string) {
+  return await prisma.user.findUnique({
+    where: {
+      id,
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
 }
 
 export const authRepo = {
-    getUserByEmail,
-    registerUserRepo
-}
+  getUserByEmail,
+  registerUserRepo,
+  getMeRepo
+};

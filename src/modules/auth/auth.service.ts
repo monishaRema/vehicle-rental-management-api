@@ -67,7 +67,20 @@ async function loginUserService(payload: LoginPayload) {
   };
 }
 
+async function getMeService(id:string){
+
+   const user = await authRepo.getMeRepo(id);
+
+  if (!user) {
+    throw new AppError(404, "User not found");
+  }
+
+  return user;
+
+}
+
 export const authService = {
   registerUserService,
   loginUserService,
+  getMeService
 };

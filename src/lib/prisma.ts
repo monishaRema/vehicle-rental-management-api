@@ -12,6 +12,6 @@ export const prisma = new PrismaClient({
   adapter,
   log: [{ emit: "event", level: "query" }],
 });
-prisma.$on("query", (e) => {
-  console.log(`[${e.duration}ms] ${e.query}`);
-});
+// prisma.$on("query", (e) => {
+//   console.log(`[${e.duration}ms] ${e.query}`);
+// });
