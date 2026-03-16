@@ -7,7 +7,7 @@ export const usersRouter = Router();
 
 // Default route => /api/v1/users
 
-usersRouter.get("/",authenticate, authorize("ADMIN"), usersController.getAllUsers)
-usersRouter.get("/:id",authenticate, authorize("ADMIN"), usersController.getSingleUser)
-usersRouter.patch("/:id/status", authenticate, authorize("ADMIN"), usersController.updateUserStatus)
-usersRouter.patch("/:id/role", authenticate, authorize("ADMIN"), usersController.updateUserRole)
+usersRouter.get("/", authorize("ADMIN"), usersController.getAllUsers)
+usersRouter.get("/:id", authorize("ADMIN"), usersController.getSingleUser)
+usersRouter.patch("/:id/status",  authorize("ADMIN"), usersController.updateUserStatus)
+usersRouter.patch("/:id/role", authorize("ADMIN"), usersController.updateUserRole)
