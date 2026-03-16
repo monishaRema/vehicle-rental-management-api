@@ -1,13 +1,37 @@
-import { Request } from "express";
 import { CreateBookingPayload } from "./bookings.types.js";
 import { AppError } from "../../errors/AppError.js";
 import { vehiclesService } from "../vehicles/vehicles.service.js";
 import { bookingsRepo } from "./bookings.repository.js";
 
+
 async function getBookingsService(){
 
 }
-async function getSingleBookingService(){
+async function getSingleBookingService(id:string){
+  const booking = await bookingsRepo.getSingleBookingRepo(id)
+
+  if(!booking){
+    throw new AppError(404,"Booking not found with this id")
+  }
+
+  return {
+    id: booking.id,
+    startDate: booking.startDate,
+    endDate: booking.endDate,
+    totalCost: booking.totalCost,
+    status: booking.status,
+    createdAt: booking.createdAt,
+    updatedAt: booking.updatedAt,
+
+    userName: booking.user.name,
+    userEmail: booking.user.email,
+
+    vehicleName: booking.vehicle.name,
+    vehicleBrand: booking.vehicle.brand,
+    vehicleModel: booking.vehicle.model,
+    vehicleFuelType: booking.vehicle.fuelType,
+  };
+
 
 }
 async function createBookingService(payload: CreateBookingPayload) {

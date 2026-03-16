@@ -3,77 +3,81 @@ import sendResponse from "../../utils/sendResponse.js";
 import { bookingsService } from "./bookings.service.js";
 import { AppError } from "../../errors/AppError.js";
 
-async function getBookings(req:Request,res:Response){
-    const bookings = ""
+async function getBookings(req: Request, res: Response) {
+  const bookings = "";
 
-    sendResponse({
-        res,
-        statusCode:200,
-        message:"Fetched bookings successfully",
-        data:bookings
-    })
+  sendResponse({
+    res,
+    statusCode: 200,
+    message: "Fetched bookings successfully",
+    data: bookings,
+  });
 }
 
+async function getSingleBookings(req: Request, res: Response) {
+  const { id } = req.params;
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+  if (!uuidRegex.test(id as string)) {
+    throw new AppError(400, "Invalid booking id format");
+  }
 
-async function getSingleBookings(req:Request,res:Response){
-    const booking = ""
+  const booking = await bookingsService.getSingleBookingService(id as string)
 
-    sendResponse({
-        res,
-        statusCode:200,
-        message:"Fetched booking successfully",
-        data:booking
-    })
+  sendResponse({
+    res,
+    statusCode: 200,
+    message: "Fetched booking successfully",
+    data: booking,
+  });
 }
 
-async function createBooking(req:Request,res:Response){
+async function createBooking(req: Request, res: Response) {
+  if (!req.user) {
+    throw new AppError(401, "Unauthorized");
+  }
+  const { userId } = req.user;
 
+  const booking = await bookingsService.createBookingService({
+    userId,
+    ...req.body,
+  });
 
-    if(!req.user){
-        throw new AppError(401,"Unauthorized")
-    }
-    const {userId} = req.user
-
-
-    const booking = await bookingsService.createBookingService({userId,...req.body})
-
-    sendResponse({
-        res,
-        statusCode:200,
-        message:"Created booking successfully",
-        data:booking
-    })
+  sendResponse({
+    res,
+    statusCode: 200,
+    message: "Created booking successfully",
+    data: booking,
+  });
 }
 
-async function updateBooking(req:Request,res:Response){
-    const updatedBooking = ""
+async function updateBooking(req: Request, res: Response) {
+  const updatedBooking = "";
 
-    sendResponse({
-        res,
-        statusCode:200,
-        message:"Updated booking successfully",
-        data:updateBooking
-    })
+  sendResponse({
+    res,
+    statusCode: 200,
+    message: "Updated booking successfully",
+    data: updateBooking,
+  });
 }
 
-async function deleteBooking(req:Request,res:Response){
-    const deletedBooking = ""
+async function deleteBooking(req: Request, res: Response) {
+  const deletedBooking = "";
 
-    sendResponse({
-        res,
-        statusCode:200,
-        message:"Booking deleted successfully",
-        data:deletedBooking
-    })
+  sendResponse({
+    res,
+    statusCode: 200,
+    message: "Booking deleted successfully",
+    data: deletedBooking,
+  });
 }
-
-
 
 export const bookingController = {
-    getBookings,
-    getSingleBookings,
-    createBooking,
-    updateBooking,
-    deleteBooking
-}
+  getBookings,
+  getSingleBookings,
+  createBooking,
+  updateBooking,
+  deleteBooking,
+};

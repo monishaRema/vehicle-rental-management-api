@@ -8,7 +8,9 @@ export const bookingRouter = Router();
 
 
  bookingRouter.get("/",authorize("ADMIN"),bookingController.getBookings)
- bookingRouter.get("/:id", bookingController.getSingleBookings)
+ bookingRouter.get("/:id",authorize("ADMIN"), bookingController.getSingleBookings)
+ bookingRouter.get("/me", bookingController.getSingleBookings)
+ bookingRouter.get("/me/:id", bookingController.getSingleBookings)
  bookingRouter.post("/",validateRequest(createBookingSchema,"body"), bookingController.createBooking)
  bookingRouter.patch("/:id", bookingController.updateBooking)
  bookingRouter.delete("/:id", bookingController.deleteBooking)
