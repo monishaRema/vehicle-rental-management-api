@@ -3,14 +3,15 @@ import { vehiclesService } from "./vehicles.service.js"
 import sendResponse from "../../utils/sendResponse.js";
 import { AppError } from "../../errors/AppError.js";
 
-async function getAllVehicles (_req:Request, res:Response){
-    const vehicles = await vehiclesService.getAllVehicles();
-    
+async function getAllVehicles (req:Request, res:Response){
+   const vehicles = await vehiclesService.getAllVehicles(req.query);
+
     sendResponse({
         res,
         statusCode: 200,
         message: "Vehicles fetched successfully",
-        data: vehicles
+        data: vehicles.data,
+        meta: vehicles.meta
     })
    
 }
@@ -37,8 +38,6 @@ async function getSingleVehicle(req:Request, res:Response){
         data: vehicle
     })
 }
-
-
 async function createVehicle(req:Request, res:Response){
    const vehicleData = req.body;
 

@@ -1,12 +1,34 @@
 import { Prisma } from "@prisma/client";
 import { AppError } from "../../errors/AppError.js";
 import { vehiclesRepository } from "./vehicles.repository.js";
-import { CreateVehiclePayload } from "./vehicles.types.js";
+import { CreateVehiclePayload, VehicleQuery } from "./vehicles.types.js";
 
-async function getAllVehicles(){
-  const vehicles = await vehiclesRepository.getAllVehicles();
-   
-    return vehicles;
+async function getAllVehicles(query:VehicleQuery ){
+  
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
+
+  const skip = (page - 1) * limit;
+
+  const sortBy = query.sortBy || "createdAt";
+  const sortOrder = query.sortOrder || "desc";
+
+  const testedQ = {
+    skip,
+    take: limit,
+    sortBy,
+    sortOrder,
+    ...(query.search ? { search: query.search } : {}),
+  }
+ 
+
+  return await vehiclesRepository.getAllVehicles({
+    skip,
+    take: limit,
+    sortBy,
+    sortOrder,
+    ...(query.search ? { search: query.search } : {}),
+  });
 }
 
 async function getSingleVehicleService(id:string){
