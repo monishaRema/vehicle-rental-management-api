@@ -21,6 +21,7 @@ async function getSingleBookingRepo(id: string) {
       updatedAt: true,
       user: {
         select: {
+          id:true,
           name: true,
           email: true,
         },

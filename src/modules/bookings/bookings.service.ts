@@ -2,11 +2,13 @@ import { CreateBookingPayload } from "./bookings.types.js";
 import { AppError } from "../../errors/AppError.js";
 import { vehiclesService } from "../vehicles/vehicles.service.js";
 import { bookingsRepo } from "./bookings.repository.js";
+import { formatBookingDetails } from "./bookings.mapper.js";
 
 
 async function getBookingsService(){
 
 }
+
 async function getSingleBookingService(id:string){
   const booking = await bookingsRepo.getSingleBookingRepo(id)
 
@@ -14,26 +16,31 @@ async function getSingleBookingService(id:string){
     throw new AppError(404,"Booking not found with this id")
   }
 
-  return {
-    id: booking.id,
-    startDate: booking.startDate,
-    endDate: booking.endDate,
-    totalCost: booking.totalCost,
-    status: booking.status,
-    createdAt: booking.createdAt,
-    updatedAt: booking.updatedAt,
-
-    userName: booking.user.name,
-    userEmail: booking.user.email,
-
-    vehicleName: booking.vehicle.name,
-    vehicleBrand: booking.vehicle.brand,
-    vehicleModel: booking.vehicle.model,
-    vehicleFuelType: booking.vehicle.fuelType,
-  };
+  return formatBookingDetails(booking)
 
 
 }
+
+
+
+async function getMySingleBookingService(id:string,userId:string){
+
+  const booking = await bookingsRepo.getSingleBookingRepo(id)
+
+  if(!booking){
+    throw new AppError(404,"Booking not found with this id")
+  }
+
+  if(userId !== booking.user.id){
+   throw new AppError(403,"You can see only your own booking")
+  }
+
+
+  return formatBookingDetails(booking)
+
+}
+
+
 async function createBookingService(payload: CreateBookingPayload) {
   const { userId, vehicleId, startDate, endDate } = payload;
 
@@ -88,6 +95,8 @@ async function deleteBookingService(){
 export const bookingsService = {
     getBookingsService,
     getSingleBookingService,
+
+    getMySingleBookingService,
     createBookingService,
     updateBookingService,
     deleteBookingService

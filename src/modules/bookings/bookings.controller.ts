@@ -14,7 +14,7 @@ async function getBookings(req: Request, res: Response) {
   });
 }
 
-async function getSingleBookings(req: Request, res: Response) {
+async function getSingleBooking(req: Request, res: Response) {
   const { id } = req.params;
   const uuidRegex =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -32,6 +32,35 @@ async function getSingleBookings(req: Request, res: Response) {
     data: booking,
   });
 }
+
+async function getMyBookings(){
+
+}
+
+async function getMySingleBooking(req: Request, res: Response) {
+    if(!req.user){
+        throw new AppError(400,"Unauthorized")
+    }
+
+  const {userId} = req.user
+  const { id } = req.params;
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+  if (!uuidRegex.test(id as string)) {
+    throw new AppError(400, "Invalid booking id format");
+  }
+
+  const booking = await bookingsService.getMySingleBookingService(id as string, userId)
+
+  sendResponse({
+    res,
+    statusCode: 200,
+    message: "Fetched booking successfully",
+    data: booking,
+  });
+}
+
 
 async function createBooking(req: Request, res: Response) {
   if (!req.user) {
@@ -76,7 +105,9 @@ async function deleteBooking(req: Request, res: Response) {
 
 export const bookingController = {
   getBookings,
-  getSingleBookings,
+  getSingleBooking,
+  getMyBookings,
+  getMySingleBooking,
   createBooking,
   updateBooking,
   deleteBooking,
