@@ -41,3 +41,31 @@ export function formatBookingDetails(booking: BookingDetailsInput) {
     vehicleFuelType: booking.vehicle.fuelType,
   };
 }
+
+
+export function bookingSelectByView(view:"ADMIN" | "USER"){
+    return { 
+      id: true,
+      startDate: true,
+      endDate: true,
+      totalCost: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+      user: {
+        select: {
+          ...(view == "ADMIN" && {id:true}),
+          name: true,
+          ...(view == "ADMIN" && {email:true}),
+        },
+      },
+      vehicle: {
+        select: {
+          name: true,
+          brand: true,
+          model: true,
+          fuelType: true,
+        },
+      },
+    }  
+}

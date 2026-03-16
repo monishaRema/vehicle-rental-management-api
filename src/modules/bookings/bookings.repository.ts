@@ -1,40 +1,97 @@
-
-
+import { Prisma } from "@prisma/client";
 import { prisma } from "../../lib/prisma.js";
-import { CreateBookingPayloadSign } from "./bookings.types.js";
+import { bookingSelectByView } from "./bookings.mapper.js";
+import { BookingSign, CreateBookingPayloadSign } from "./bookings.types.js";
 
-async function getBookingsRepo(){
+async function getBookingsRepo(query: BookingSign) {
+  const whereCondition: Prisma.BookingWhereInput = {
+    ...(query.search
+      ? {
+          OR: [
+            {
+              vehicle: {
+                name: {
+                  contains: query.search,
+                  mode: "insensitive",
+                },
+              },
+            },
+            {
+              vehicle: {
+                brand: {
+                  contains: query.search,
+                  mode: "insensitive",
+                },
+              },
+            },
+            {
+              vehicle: {
+                model: {
+                  contains: query.search,
+                  mode: "insensitive",
+                },
+              },
+            },
+            {
+              user: {
+                name: {
+                  contains: query.search,
+                  mode: "insensitive",
+                },
+              },
+            },
+            {
+              user: {
+                email: {
+                  contains: query.search,
+                  mode: "insensitive",
+                },
+              },
+            },
+          ],
+        }
+      : {}),
+  };
 
+  const total = await prisma.booking.count({
+    where: whereCondition,
+  });
+
+  const bookings = await prisma.booking.findMany({
+    where: whereCondition,
+    select: bookingSelectByView("ADMIN"),
+    skip: query.skip,
+    take: query.take,
+    orderBy: {
+      [query.sortBy]: query.sortOrder,
+    },
+  });
+
+  return {
+    data: bookings,
+    meta: {
+      page: Math.floor(query.skip / query.take) + 1,
+      limit: query.take,
+      total,
+      totalPages: Math.ceil(total / query.take),
+    },
+  };
 }
+async function getMyBookingsRepo(userId: string) {
+  return await prisma.booking.findMany({
+    where: {
+      userId,
+    },
+    select: bookingSelectByView("USER"),
+  });
+}
+
 async function getSingleBookingRepo(id: string) {
   return await prisma.booking.findUnique({
     where: {
       id,
     },
-    select: {
-      id: true,
-      startDate: true,
-      endDate: true,
-      totalCost: true,
-      status: true,
-      createdAt: true,
-      updatedAt: true,
-      user: {
-        select: {
-          id:true,
-          name: true,
-          email: true,
-        },
-      },
-      vehicle: {
-        select: {
-          name: true,
-          brand: true,
-          model: true,
-          fuelType: true,
-        },
-      },
-    },
+    select: bookingSelectByView("ADMIN"),
   });
 
   /**
@@ -60,26 +117,21 @@ async function getSingleBookingRepo(id: string) {
    * WHERE b.id = $1;
    */
 }
-async function createBookingRepo(payload:CreateBookingPayloadSign){
 
-    return await prisma.booking.create({
-        data:payload
-    })
-    
+async function createBookingRepo(payload: CreateBookingPayloadSign) {
+  return await prisma.booking.create({
+    data: payload,
+  });
 }
 
-async function updateBookingRepo(){
-
-}
-async function deleteBookingRepo(){
-
-}
-
+async function updateBookingRepo() {}
+async function deleteBookingRepo() {}
 
 export const bookingsRepo = {
-    getBookingsRepo,
-    getSingleBookingRepo,
-    createBookingRepo,
-    updateBookingRepo,
-    deleteBookingRepo
-}
+  getBookingsRepo,
+  getSingleBookingRepo,
+  createBookingRepo,
+  updateBookingRepo,
+  deleteBookingRepo,
+  getMyBookingsRepo,
+};

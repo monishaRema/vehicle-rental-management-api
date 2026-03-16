@@ -4,13 +4,14 @@ import { bookingsService } from "./bookings.service.js";
 import { AppError } from "../../errors/AppError.js";
 
 async function getBookings(req: Request, res: Response) {
-  const bookings = "";
+  const bookings = await bookingsService.getBookingsService(req.query);
 
   sendResponse({
     res,
     statusCode: 200,
     message: "Fetched bookings successfully",
-    data: bookings,
+    data: bookings.data,
+    meta: bookings.meta
   });
 }
 
@@ -33,7 +34,19 @@ async function getSingleBooking(req: Request, res: Response) {
   });
 }
 
-async function getMyBookings(){
+async function getMyBookings(req:Request,res:Response){
+    if(!req.user){
+        throw new AppError(401, "Unauthorized")
+    }
+
+    const myBookings = await bookingsService.getMyBookingsService(req.user.userId)
+
+    sendResponse({
+        res,
+        statusCode:200,
+        message:"Fetched your booking successfully",
+        data:myBookings
+    })
 
 }
 

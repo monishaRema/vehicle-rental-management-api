@@ -13,14 +13,6 @@ async function getAllVehicles(query:VehicleQuery ){
   const sortBy = query.sortBy || "createdAt";
   const sortOrder = query.sortOrder || "desc";
 
-  const testedQ = {
-    skip,
-    take: limit,
-    sortBy,
-    sortOrder,
-    ...(query.search ? { search: query.search } : {}),
-  }
- 
 
   return await vehiclesRepository.getAllVehicles({
     skip,
