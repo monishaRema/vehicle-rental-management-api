@@ -83,7 +83,8 @@ async function createBookingService(payload: CreateBookingPayload) {
     throw new AppError(400, "End date must be after start date");
   }
 
-  const existingVehicle = await vehiclesService.getSingleVehicleService(vehicleId);
+  const existingVehicle =
+    await vehiclesService.getSingleVehicleService(vehicleId);
 
   if (!existingVehicle) {
     throw new AppError(404, "Vehicle not found");
@@ -94,7 +95,7 @@ async function createBookingService(payload: CreateBookingPayload) {
   }
 
   const totalDays = Math.ceil(
-    (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+    (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
   );
 
   const totalCost = totalDays * Number(existingVehicle.dailyRate);
@@ -113,7 +114,7 @@ async function createBookingService(payload: CreateBookingPayload) {
       tx,
       booking.id,
       "CREATED",
-      "Booking created successfully"
+      "Booking created successfully",
     );
 
     return booking;
@@ -144,14 +145,65 @@ async function cancelBookingService(userId: string, bookingId: string) {
   const now = new Date();
 
   if (booking.startDate <= now) {
-    throw new AppError(400, "You cannot cancel a booking that has already started");
+    throw new AppError(
+      400,
+      "You cannot cancel a booking that has already started",
+    );
   }
 
-  const cancelledBooking = await bookingsRepo.cancelBookingRepo(bookingId);
+
+  const cancelledBooking = await prisma.$transaction(async (tx) => {
+
+    // BEGAN
+    const booking = await bookingsRepo.cancelBookingRepo(tx, bookingId);
+
+    await bookingsRepo.createBookingLogRepo(
+      tx,
+      booking.id,
+      "CANCELLED",
+      "Booking canceled by user",
+    );
+    // COMMIT  || ROLLBACK
+    return booking;
+  });
 
   return formatBookingDetails(cancelledBooking);
 }
-async function deleteBookingService() {}
+
+
+
+async function autoCompleteExpiredBookingsService(){
+
+const now = new Date();
+
+  const expiredBookings = await bookingsRepo.getExpiredConfirmedBookingsRepo(now);
+
+  let completedCount = 0;
+
+  for (const booking of expiredBookings) {
+
+    await prisma.$transaction(async (tx) => {
+      await bookingsRepo.completeBookingRepo(tx, booking.id);
+
+      await bookingsRepo.createBookingLogRepo(
+        tx,
+        booking.id,
+        "COMPLETED",
+        "Booking auto-completed by system"
+      );
+    });
+
+    completedCount++;
+  }
+  
+
+
+
+  return {
+    completedCount,
+  };
+
+}
 
 export const bookingsService = {
   getBookingsService,
@@ -160,5 +212,5 @@ export const bookingsService = {
   getMySingleBookingService,
   createBookingService,
   cancelBookingService,
-  deleteBookingService,
+  autoCompleteExpiredBookingsService
 };

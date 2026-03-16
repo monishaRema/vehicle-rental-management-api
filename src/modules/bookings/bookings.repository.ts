@@ -2,7 +2,11 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { prisma } from "../../lib/prisma.js";
 import { bookingSelectByView } from "./bookings.mapper.js";
 import { BookingSign, CreateBookingPayloadSign } from "./bookings.types.js";
+
+
 type DBClient = PrismaClient | Prisma.TransactionClient;
+
+
 async function getBookingsRepo(query: BookingSign) {
   const whereCondition: Prisma.BookingWhereInput = {
     ...(query.search
@@ -143,8 +147,8 @@ async function createBookingLogRepo(
   });
 }
 
-async function cancelBookingRepo(id: string) {
-  return await prisma.booking.update({
+async function cancelBookingRepo(db: DBClient, id: string) {
+  return await db.booking.update({
     where: {
       id,
     },
@@ -155,14 +159,47 @@ async function cancelBookingRepo(id: string) {
     select: bookingSelectByView("USER"),
   });
 }
-async function deleteBookingRepo() {}
+
+
+
+async function completeBookingRepo(db: DBClient, id: string) {
+  return await db.booking.update({
+    where: {
+      id,
+    },
+    data: {
+      status: "COMPLETED",
+      cancelledAt: new Date(),
+    },
+    select: bookingSelectByView("USER"),
+  });
+}
+
+
+
+
+
+async function getExpiredConfirmedBookingsRepo(now: Date) {
+  return await prisma.booking.findMany({
+    where: {
+      status: "CONFIRMED",
+      endDate: {
+        lte: now,
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+}
 
 export const bookingsRepo = {
   getBookingsRepo,
   getSingleBookingRepo,
   createBookingRepo,
   cancelBookingRepo,
-  deleteBookingRepo,
+  completeBookingRepo,
   getMyBookingsRepo,
   createBookingLogRepo,
+  getExpiredConfirmedBookingsRepo,
 };
