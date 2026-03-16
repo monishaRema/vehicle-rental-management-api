@@ -3,6 +3,7 @@ import sendResponse from "../../utils/sendResponse.js";
 import { bookingsService } from "./bookings.service.js";
 import { AppError } from "../../errors/AppError.js";
 
+
 async function getBookings(req: Request, res: Response) {
   const bookings = await bookingsService.getBookingsService(req.query);
 
@@ -14,6 +15,7 @@ async function getBookings(req: Request, res: Response) {
     meta: bookings.meta
   });
 }
+
 
 async function getSingleBooking(req: Request, res: Response) {
   const { id } = req.params;
@@ -34,6 +36,7 @@ async function getSingleBooking(req: Request, res: Response) {
   });
 }
 
+
 async function getMyBookings(req:Request,res:Response){
     if(!req.user){
         throw new AppError(401, "Unauthorized")
@@ -49,6 +52,7 @@ async function getMyBookings(req:Request,res:Response){
     })
 
 }
+
 
 async function getMySingleBooking(req: Request, res: Response) {
     if(!req.user){
@@ -94,16 +98,44 @@ async function createBooking(req: Request, res: Response) {
   });
 }
 
-async function updateBooking(req: Request, res: Response) {
+
+async function cancelBooking(req: Request, res: Response) {
+  if (!req.user) {
+    throw new AppError(401, "Unauthorized");
+  }
+
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+  if (!uuidRegex.test(req.params.id as string)) {
+    throw new AppError(400, "Invalid booking id format");
+  }
+
+  const cancelledBooking = await bookingsService.cancelBookingService(
+    req.user.userId,
+    req.params.id as string
+  );
+
+  sendResponse({
+    res,
+    statusCode: 200,
+    message: "Booking cancelled successfully",
+    data: cancelledBooking,
+  });
+}
+
+async function completeBooking(req: Request, res: Response) {
   const updatedBooking = "";
 
   sendResponse({
     res,
     statusCode: 200,
     message: "Updated booking successfully",
-    data: updateBooking,
+    data: updatedBooking,
   });
 }
+
+
 
 async function deleteBooking(req: Request, res: Response) {
   const deletedBooking = "";
@@ -122,6 +154,7 @@ export const bookingController = {
   getMyBookings,
   getMySingleBooking,
   createBooking,
-  updateBooking,
+  cancelBooking,
+  completeBooking,
   deleteBooking,
 };

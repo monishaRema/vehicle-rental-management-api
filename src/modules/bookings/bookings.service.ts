@@ -3,6 +3,7 @@ import { AppError } from "../../errors/AppError.js";
 import { vehiclesService } from "../vehicles/vehicles.service.js";
 import { bookingsRepo } from "./bookings.repository.js";
 import { formatBookingDetails } from "./bookings.mapper.js";
+import { prisma } from "../../lib/prisma.js";
 
 async function getBookingsService(query: BookingQuery) {
   const page = Number(query.page) || 1;
@@ -82,36 +83,74 @@ async function createBookingService(payload: CreateBookingPayload) {
     throw new AppError(400, "End date must be after start date");
   }
 
-  const existingVehicle =
-    await vehiclesService.getSingleVehicleService(vehicleId);
+  const existingVehicle = await vehiclesService.getSingleVehicleService(vehicleId);
+
+  if (!existingVehicle) {
+    throw new AppError(404, "Vehicle not found");
+  }
 
   if (existingVehicle.status !== "AVAILABLE") {
     throw new AppError(400, "Vehicle is not available for booking");
   }
 
   const totalDays = Math.ceil(
-    (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
+    (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
   );
 
   const totalCost = totalDays * Number(existingVehicle.dailyRate);
 
-  const booking = await bookingsRepo.createBookingRepo({
-    userId,
-    vehicleId,
-    startDate,
-    endDate,
-    status: "CONFIRMED",
-    totalCost,
+  const result = await prisma.$transaction(async (tx) => {
+    const booking = await bookingsRepo.createBookingRepo(tx, {
+      userId,
+      vehicleId,
+      startDate: start,
+      endDate: end,
+      status: "CONFIRMED",
+      totalCost,
+    });
+
+    await bookingsRepo.createBookingLogRepo(
+      tx,
+      booking.id,
+      "CREATED",
+      "Booking created successfully"
+    );
+
+    return booking;
   });
 
-  if (!booking) {
-    throw new AppError(400, "Booking failed");
-  }
-
-  return booking;
+  return formatBookingDetails(result);
 }
 
-async function updateBookingService() {}
+async function cancelBookingService(userId: string, bookingId: string) {
+  const booking = await bookingsRepo.getSingleBookingRepo(bookingId);
+
+  if (!booking) {
+    throw new AppError(404, "Booking not found");
+  }
+
+  if (booking.user.id !== userId) {
+    throw new AppError(403, "You can only cancel your own booking");
+  }
+
+  if (booking.status === "CANCELLED") {
+    throw new AppError(400, "Booking is already cancelled");
+  }
+
+  if (booking.status === "COMPLETED") {
+    throw new AppError(400, "Completed booking cannot be cancelled");
+  }
+
+  const now = new Date();
+
+  if (booking.startDate <= now) {
+    throw new AppError(400, "You cannot cancel a booking that has already started");
+  }
+
+  const cancelledBooking = await bookingsRepo.cancelBookingRepo(bookingId);
+
+  return formatBookingDetails(cancelledBooking);
+}
 async function deleteBookingService() {}
 
 export const bookingsService = {
@@ -120,6 +159,6 @@ export const bookingsService = {
   getMyBookingsService,
   getMySingleBookingService,
   createBookingService,
-  updateBookingService,
+  cancelBookingService,
   deleteBookingService,
 };

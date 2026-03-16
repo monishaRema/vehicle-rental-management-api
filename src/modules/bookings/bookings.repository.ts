@@ -1,8 +1,8 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import { prisma } from "../../lib/prisma.js";
 import { bookingSelectByView } from "./bookings.mapper.js";
 import { BookingSign, CreateBookingPayloadSign } from "./bookings.types.js";
-
+type DBClient = PrismaClient | Prisma.TransactionClient;
 async function getBookingsRepo(query: BookingSign) {
   const whereCondition: Prisma.BookingWhereInput = {
     ...(query.search
@@ -118,20 +118,51 @@ async function getSingleBookingRepo(id: string) {
    */
 }
 
-async function createBookingRepo(payload: CreateBookingPayloadSign) {
-  return await prisma.booking.create({
+async function createBookingRepo(
+  db: DBClient,
+  payload: CreateBookingPayloadSign,
+) {
+  return await db.booking.create({
     data: payload,
+    select: bookingSelectByView("USER"),
   });
 }
 
-async function updateBookingRepo() {}
+async function createBookingLogRepo(
+  db: DBClient,
+  bookingId: string,
+  action: "CREATED" | "CANCELLED" | "COMPLETED",
+  message?: string,
+) {
+  return await db.bookingLog.create({
+    data: {
+      bookingId,
+      action,
+      message: message ?? null,
+    },
+  });
+}
+
+async function cancelBookingRepo(id: string) {
+  return await prisma.booking.update({
+    where: {
+      id,
+    },
+    data: {
+      status: "CANCELLED",
+      cancelledAt: new Date(),
+    },
+    select: bookingSelectByView("USER"),
+  });
+}
 async function deleteBookingRepo() {}
 
 export const bookingsRepo = {
   getBookingsRepo,
   getSingleBookingRepo,
   createBookingRepo,
-  updateBookingRepo,
+  cancelBookingRepo,
   deleteBookingRepo,
   getMyBookingsRepo,
+  createBookingLogRepo,
 };
